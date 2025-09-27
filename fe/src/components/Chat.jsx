@@ -143,6 +143,7 @@ const Chat = () => {
                                 className={`p-2  d-inline-block text-wrap ${
                                     msg.role === 'user' ? 'bg-primary text-white rounded-start' : 'bg-light text-dark ai-response-text rounded-end'
                                 }`}
+
                             >
                                <ReactMarkdown>{msg.parts[0].text}</ReactMarkdown>
                             </span>

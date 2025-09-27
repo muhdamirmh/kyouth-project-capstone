@@ -1,16 +1,37 @@
 // src/components/Sidebar.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useChat } from '../contexts/ChatContext';
-import {useAuth} from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import axios from 'axios';
 
+// Define the breakpoint for mobile view
+const MOBILE_BREAKPOINT = 768;
+
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
+    // 1. STATE TO TRACK MOBILE VIEW
+    const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
+
+    // 2. EFFECT TO HANDLE RESIZING (Native Hook for Mobile Detection)
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+        };
+
+        window.addEventListener('resize', checkIsMobile);
+        // Initial check on mount
+        checkIsMobile();
+
+        // Cleanup function
+        return () => window.removeEventListener('resize', checkIsMobile);
+    }, []);
+
+    // --- Contexts and State ---
     const {
         activeChatId,
         chatList,
         setActiveChatId,
-        deleteChat, // Function to delete chat
+        deleteChat,
         fetchChatList,
         createNewChat,
     } = useChat();
@@ -19,7 +40,9 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const [tempTitle, setTempTitle] = useState('');
 
     const { logout } = useAuth();
+    // -------------------------
 
+    // --- Handlers ---
     const handleManualRename = async (chatId) => {
         if (!tempTitle.trim()) return;
         try {
@@ -39,28 +62,56 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         }
     };
 
-    // Define the style for the content wrapper (used inside the main div)
+    // New handler: Sets active chat AND closes sidebar on mobile
+    const handleSetActiveChat = (chatId) => {
+        setActiveChatId(chatId);
+        if (isMobile) {
+            setIsSidebarOpen(false);
+        }
+    };
+    // ------------------
+
+
+    // --- STYLING ---
+
+    // Define the style for the content wrapper (opacity/minWidth)
     const contentStyle = {
         opacity: isSidebarOpen ? 1 : 0,
         transition: 'opacity 0.3s ease-in-out',
         pointerEvents: isSidebarOpen ? 'auto' : 'none',
-        minWidth: '300px' // Ensures content doesn't wrap oddly when slightly visible
+        minWidth: '300px'
     };
+
+    // CONDITIONAL STYLING FOR MOBILE OVERLAY (APPLIED TO MAIN DIV)
+    const sidebarContainerStyle = {
+        // --- Shared Styles for Collapse Effect ---
+        // Width: 300px open. Closed state is 60px (desktop) or 0px (mobile)
+        width: isSidebarOpen ? '300px' : '60px',
+        minWidth: isSidebarOpen ? '300px' : '60px',
+        transition: 'width 0.3s ease-in-out, min-width 0.3s ease-in-out, left 0.3s ease-in-out',
+        overflow: 'hidden',
+
+        // 🌟 CRITICAL FIX: Only use fixed/absolute positioning when open AND mobile 🌟
+        position: isMobile && isSidebarOpen ? 'fixed' : 'relative',
+        top: 0,
+        bottom: 0,
+
+        // This makes the closed mobile sidebar take up 0 space beside the chat
+        left: isMobile && isSidebarOpen ? 0 : undefined,
+
+        height: isMobile ? '100vh' : 'auto',
+        zIndex: isMobile && isSidebarOpen ? 1051 : 1, // Only high z-index when floating
+        boxShadow: isMobile && isSidebarOpen ? '5px 0 10px rgba(0,0,0,0.2)' : 'none',
+    };
+    // -----------------
 
     return (
         <div
             className={`bg-light border-end d-flex flex-column`}
-            style={{
-                // Control width and transition for collapse effect
-                width: isSidebarOpen ? '300px' : '60px',
-                minWidth: isSidebarOpen ? '300px' : '60px',
-                transition: 'width 0.3s ease-in-out, min-width 0.3s ease-in-out',
-                overflow: 'hidden', // Hides content when width is 0
-            }}
+            style={sidebarContainerStyle} // Apply combined styles
         >
             {/* 🌟 1. COLLAPSE BUTTON HEADER 🌟 */}
             <div className="p-3 d-flex justify-content-between align-items-center border-bottom bg-white flex-shrink-0">
-
 
                 {/* Collapse/Expand Button */}
                 <button
@@ -100,8 +151,9 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                     {chatList.map((chat) => (
                         <div
                             key={chat._id}
+                            // ❗ Use the new handler here ❗
+                            onClick={() => handleSetActiveChat(chat._id)}
                             className={`list-group-item list-group-item-action ${chat._id === activeChatId ? 'active' : ''} d-flex justify-content-between align-items-center mb-0 border-0`}
-                            onClick={() => setActiveChatId(chat._id)}
                             style={{cursor: 'pointer', padding: '0.75rem 1rem'}}
                         >
                             {isRenaming === chat._id ? (
@@ -155,6 +207,22 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                     ))}
                 </div>
             </div>
+
+
+            {/*{isMobile && isSidebarOpen && (*/}
+            {/*    <div*/}
+            {/*        onClick={() => setIsSidebarOpen(false)}*/}
+            {/*        style={{*/}
+            {/*            position: 'fixed',*/}
+            {/*            top: 0,*/}
+            {/*            left: 0,*/}
+            {/*            right: 0,*/}
+            {/*            bottom: 0,*/}
+            {/*            backgroundColor: 'rgba(0, 0, 0, 0.3)',*/}
+            {/*            zIndex: -1050, // Below the sidebar but above all content*/}
+            {/*        }}*/}
+            {/*    />*/}
+            {/*)}*/}
         </div>
     );
 };
