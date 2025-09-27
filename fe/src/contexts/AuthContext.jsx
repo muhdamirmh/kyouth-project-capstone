@@ -2,7 +2,15 @@ import axios from "axios";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 
-axios.defaults.baseURL = `${import.meta.env.VITE_BE_URL }/api/v1`;
+const isProduction = import.meta.env.ENV === "production";
+
+// If running in development (not production), use the VITE_BE_URL.
+// If running in production (built and deployed), use the relative path '/api/v1'.
+const baseURL = isProduction
+    ? '/api/v1'
+    : `${import.meta.env.VITE_BE_URL}/api/v1`;
+
+axios.defaults.baseURL = baseURL;
 
 const AuthContext = createContext();
 
