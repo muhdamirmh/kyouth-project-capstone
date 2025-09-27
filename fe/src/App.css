@@ -1,0 +1,80 @@
+/*#root {*/
+/*	max-width: 1280px;*/
+/*	margin: 0 auto;*/
+/*	padding: 2rem;*/
+/*	text-align: center;*/
+/*}*/
+
+/*.logo {*/
+/*	height: 6em;*/
+/*	padding: 1.5em;*/
+/*	will-change: filter;*/
+/*	transition: filter 300ms;*/
+/*}*/
+/*.logo:hover {*/
+/*	filter: drop-shadow(0 0 2em #646cffaa);*/
+/*}*/
+/*.logo.react:hover {*/
+/*	filter: drop-shadow(0 0 2em #61dafbaa);*/
+/*}*/
+
+/*@keyframes logo-spin {*/
+/*	from {*/
+/*		transform: rotate(0deg);*/
+/*	}*/
+/*	to {*/
+/*		transform: rotate(360deg);*/
+/*	}*/
+/*}*/
+
+/*@media (prefers-reduced-motion: no-preference) {*/
+/*	a:nth-of-type(2) .logo {*/
+/*		animation: logo-spin infinite 20s linear;*/
+/*	}*/
+/*}*/
+
+/*.card {*/
+/*	padding: 2em;*/
+/*}*/
+
+/*.read-the-docs {*/
+/*	color: #888;*/
+/*}*/
+
+/* App.css or index.css */
+
+/* Define the sidebar width using a CSS variable */
+:root {
+    --sidebar-width: 300px; /* Default expanded width */
+    --sidebar-minimized-width: 0px; /* Hidden width */
+    --transition-speed: 0.3s;
+}
+
+/* Base style for the sidebar container */
+.sidebar-container {
+    width: var(--sidebar-width);
+    transition: width var(--transition-speed) ease-in-out;
+    flex-shrink: 0; /* Ensures it doesn't shrink when the main chat grows */
+}
+
+/* Style for the collapsed state */
+.sidebar-collapsed {
+    width: var(--sidebar-minimized-width);
+}
+
+/* Ensure the main chat takes up the remaining space */
+.chat-main {
+    width: 100%; /* Default 100% of container */
+}
+
+/* Hide content when collapsed */
+.sidebar-content {
+    overflow-x: hidden;
+    width: var(--sidebar-width); /* Fixed width for inner content */
+    transition: opacity var(--transition-speed) ease-in-out;
+}
+
+.sidebar-collapsed .sidebar-content {
+    opacity: 0;
+    pointer-events: none;
+}
