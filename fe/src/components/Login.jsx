@@ -19,14 +19,14 @@ const Login = () => {
         setError("");
 
         // Attempt login via AuthContext
-        const success = await login(formData.email, formData.password);
+        const result = await login(formData.email, formData.password);
 
-        if (success) {
+        if (result.success) {
             // If login function returns true (token received), navigate to chat
             navigate("/chat");
         } else {
             // Set a generic error message if login failed (handled within AuthContext)
-            setError("Login failed. Please check your credentials.");
+            setError(`Login failed. ${result.message}`);
         }
     };
 

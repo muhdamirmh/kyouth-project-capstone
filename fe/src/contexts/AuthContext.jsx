@@ -55,11 +55,18 @@ export const AuthProvider = ({ children }) => {
             const res = await axios.post("/auth/login", { email, password });
             setToken(res.data.token); // This triggers the secondary useEffect
             setLoading(false);
-            return true;
+            return {
+                success: true,
+                message: "Login successful",
+            }
         } catch (err) {
             setLoading(false);
-            console.error("Login failed:", err.response?.data?.msg || "Server error");
-            return false;
+            const errMessage = err.response?.data?.msg || "Server error";
+            console.error("Login failed:", errMessage);
+            return {
+                success: false,
+                message: errMessage,
+            }
         }
     };
 

@@ -32,8 +32,7 @@ const Register = () => {
 			setTimeout(() => navigate("/login"), 1500);
 		} catch (err) {
 			setLoading(false);
-			const errorMsg =
-				err.response?.data?.msg || "Registration failed. Server error.";
+			const errorMsg = `Registration failed: ${err.response?.data?.msg}`
 			setMessage({ type: "danger", text: errorMsg });
 		}
 	};

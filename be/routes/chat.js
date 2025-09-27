@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer'); // <-- NEW: File upload middleware
+const logger = require('../utils/logger');
 const auth = require('../middlewares/auth');
 const Chat = require('../models/chat');
 const { // <-- NEW: Import AI utilities
@@ -57,8 +58,8 @@ router.post('/new', auth, async (req, res) => {
         await newChat.save();
         res.json(newChat);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        logger.error(`/new:`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 
@@ -73,8 +74,8 @@ router.get('/all', auth, async (req, res) => {
         const chats = await Chat.find({ user: req.user.id }).select('title createdAt _id').sort({ createdAt: -1 });
         res.json(chats);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        logger.error(`/all`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 
@@ -91,8 +92,8 @@ router.get('/:chatId', auth, async (req, res) => {
         }
         res.json(chat);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        logger.error(`/:chatId: ${req.params.chatId}`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 
@@ -123,8 +124,8 @@ router.post('/:chatId/title', auth, async (req, res) => {
         res.json({ title: chat.title });
 
     } catch (err) {
-        console.error('Title Rename Error:', err.message);
-        res.status(500).send({ msg: 'Failed to rename chat.' });
+        logger.error(`/:chatId/title: ${req.params.chatId}`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 
@@ -192,13 +193,14 @@ router.post('/:chatId/message', auth, upload.single('file'), async (req, res) =>
         res.json(chat.messages);
 
     } catch (err) {
-        console.error('Message Processing Error:', err.message);
+        logger.error(`/:chatId/message: ${req.params.chatId}`, err.stack);
         // Ensure cleanup even on server error
         if (uploadedFile) {
             await deleteFileFromGemini(uploadedFile.name);
         }
-        res.status(500).send('Server Error during message processing');
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
+
 });
 
 /**
@@ -215,8 +217,8 @@ router.delete('/:chatId', auth, async (req, res) => {
         }
         res.json({ msg: 'Chat deleted' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        logger.error(`/:chatId: ${req.params.chatId}`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 

@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/user'); // Import the model
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
@@ -25,8 +26,8 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ msg: 'User registered successfully' });
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        logger.error(`/register: ${email}`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 
@@ -63,8 +64,8 @@ router.post('/login', async (req, res) => {
         );
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        logger.error(`/login: ${email}`, err.stack);
+        res.status(500).json({ msg: 'An unexpected error occurred, please try again later'});
     }
 });
 
