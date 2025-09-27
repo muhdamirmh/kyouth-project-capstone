@@ -11,11 +11,6 @@ const app = express()
 const port = process.env.PORT || 3000
 const dbURI = process.env.MONGODB_URI
 
-const allowedOrigins = [
-    'http://localhost:5173', // For local testing
-    'https://your-vercel-app-name.vercel.app', // Replace with your Vercel domain
-];
-
 mongoose.connect(dbURI)
     .then(() =>
         console.log(`MongoDB connected successfully`),

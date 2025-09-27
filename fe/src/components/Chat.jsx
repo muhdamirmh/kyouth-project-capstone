@@ -6,7 +6,7 @@ import { useChat } from '../contexts/ChatContext';
 import axios from 'axios';
 import Sidebar from './Sidebar'; // Ensure Sidebar is imported
 import './Chat.css'
-import {useAuth} from "../contexts/AuthContext.jsx";
+
 
 const Chat = () => {
     // --- CONTEXT HOOKS ---
