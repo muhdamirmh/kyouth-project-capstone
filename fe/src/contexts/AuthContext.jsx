@@ -2,13 +2,7 @@ import axios from "axios";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 
-// Check if the URL starts with a protocol (i.e., running locally)
-const isLocal = import.meta.env.VITE_BE_URL.startsWith('http');
-
-axios.defaults.baseURL = isLocal
-    ? `${import.meta.env.VITE_BE_URL}/api/v1`
-        : `${import.meta.env.VITE_BE_URL}/v1`;
-
+axios.defaults.baseURL = `${import.meta.env.VITE_BE_URL }/api/v1`;
 
 const AuthContext = createContext();
 
