@@ -2,7 +2,9 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 require('dotenv').config()
+const swaggerUi = require('swagger-ui-express');
 
+const swaggerSpec = require('./configs/swagger');
 const authRoutes = require('./routes/auth')
 const chatRoutes = require('./routes/chat')
 
@@ -36,6 +38,8 @@ app.use(cors({
 app.use(express.json())
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/chats', chatRoutes)
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
     res.send('Hello World!')

@@ -14,6 +14,14 @@ const { // <-- NEW: Import AI utilities
 // Configure multer to store file buffers in memory
 const upload = multer({ storage: multer.memoryStorage() });
 
+// --- Global Tags Definition (Using working format) ---
+/**
+ * @swagger
+ * tags:
+ *  name: Chats
+ *  description: AI Chat Session and Message Management
+ */
+
 // --- Helper function to prepare Mongoose history for Gemini ---
 const formatHistoryForGemini = (messages) => {
     return messages.map(msg => {
@@ -48,6 +56,37 @@ const formatHistoryForGemini = (messages) => {
  * @desc    Create a new chat session for the logged-in user
  * @access  Private
  */
+
+/**
+ * @swagger
+ * /chats/new:
+ *  post:
+ *   summary: Create a new chat session
+ *   tags:
+ *    - Chats
+ *   security:
+ *    - AuthToken: []
+ *   requestBody:
+ *    required: false
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        title:
+ *         type: string
+ *         description: Optional initial title for the chat.
+ *   responses:
+ *    200:
+ *     description: New chat session created successfully
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        description: The returned value is the full Chat schema (as follows the Chat model).
+ *    500:
+ *     description: Server Error
+ */
 router.post('/new', auth, async (req, res) => {
     try {
         // Create a new chat document in the database
@@ -68,6 +107,28 @@ router.post('/new', auth, async (req, res) => {
  * @desc    Get all chat sessions for the logged-in user
  * @access  Private
  */
+
+/**
+ * @swagger
+ * /chats/all:
+ *  get:
+ *   summary: Get all chat sessions
+ *   tags: [Chats]
+ *   security:
+ *   - AuthToken: []
+ *   responses:
+ *    200:
+ *     description: A list of chat titles and IDs
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: array
+ *        items:
+ *         type: object
+ *         description: The returned value is multiple objects of the full Chat schema (as follows the Chat model).
+ *    500:
+ *     description: Server Error
+ */
 router.get('/all', auth, async (req, res) => {
     try {
         // Find all chats belonging to the user, ordered by most recent
@@ -83,6 +144,43 @@ router.get('/all', auth, async (req, res) => {
  * @route   GET /api/v1/chats/:chatId
  * @desc    Get a specific chat session and its history
  * @access  Private
+ */
+
+/**
+ * @swagger
+ * /chats/{chatId}:
+ *  get:
+ *   summary: Get specific chat session and history
+ *   tags: [Chats]
+ *   security:
+ *   - AuthToken: []
+ *   parameters:
+ *   - in: path
+ *   - name: chatId
+ *   schema:
+ *    type: string
+ *    required: true
+ *    description: The ID of the chat session to retrieve.
+ *   responses:
+ *    200:
+ *     description: The full chat session data including messages.
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        description: The returned value is the full Chat schema (as follows the Chat model).
+ *    404:
+ *     description: Chat not found
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         msg:
+ *          type: string
+ *          example: Chat not found
+ *    500:
+ *     description: Server Error
  */
 router.get('/:chatId', auth, async (req, res) => {
     try {
@@ -101,6 +199,49 @@ router.get('/:chatId', auth, async (req, res) => {
  * @route   POST /api/v1/chats/:chatId/title
  * @desc    Manually rename chat or request AI auto-rename
  * @access  Private
+ */
+/**
+ * @swagger
+ * /chats/{chatId}/title:
+ *  post:
+ *   summary: Rename chat (manual or AI auto-generate)
+ *   tags: [Chats]
+ *   security:
+ *   - AuthToken: []
+ *   parameters:
+ *   - in: path
+ *   - name: chatId
+ *   schema:
+ *    type: string
+ *    required: true
+ *    description: The ID of the chat session.
+ *    requestBody:
+ *     required: false
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         newTitle:
+ *         type: string
+ *         description: New title if renaming manually. Omit for AI auto-rename.
+ *   responses:
+ *    200:
+ *     description: Chat title updated
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         title:
+ *           type: string
+ *           example: My New Descriptive Chat Title
+ *    400:
+ *     description: Bad Request (e.g., trying to auto-rename an empty chat)
+ *    404:
+ *     description: Chat not found
+ *    500:
+ *     description: Server Error
  */
 router.post('/:chatId/title', auth, async (req, res) => {
     const { newTitle } = req.body || {};
@@ -137,6 +278,51 @@ router.post('/:chatId/title', auth, async (req, res) => {
  * @route   POST /api/v1/chats/:chatId/message
  * @desc    Send a message (with optional file) and get an AI response
  * @access  Private
+ */
+
+/**
+ * @swagger
+ * /chats/{chatId}/message:
+ *  post:
+ *   summary: Send message to AI (supports text and file upload)
+ *   tags: [Chats]
+ *   security:
+ *   - AuthToken: []
+ *   parameters:
+ *   - in: path
+ *   - name: chatId
+ *   schema:
+ *    type: string
+ *    required: true
+ *    description: The ID of the chat session.
+ *   requestBody:
+ *    required: true
+ *    content:
+ *     multipart/form-data:
+ *      schema:
+ *       type: object
+ *       properties:
+ *        message:
+ *         type: string
+ *         description: The user's text prompt.
+ *       file:
+ *        type: string
+ *        format: binary
+ *        description: Optional file upload (image, PDF, etc.) for multimodal prompt.
+ *   responses:
+ *    200:
+ *     description: Returns the updated chat messages array (user message + AI response).
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: array
+ *        items:
+ *         type: object
+ *         description: The returned value is multiple objects of the full Chat schema (as follows the Chat model).
+ *    404:
+ *     description: Chat not found
+ *    500:
+ *     description: Server Error
  */
 router.post('/:chatId/message', auth, upload.single('file'), async (req, res) => {
     const { message } = req.body;
@@ -207,6 +393,38 @@ router.post('/:chatId/message', auth, upload.single('file'), async (req, res) =>
  * @route   DELETE /api/v1/chats/:chatId
  * @desc    Delete a specific chat session
  * @access  Private
+ */
+
+/**
+ * @swagger
+ * /chats/{chatId}:
+ *  delete:
+ *   summary: Delete a chat session
+ *   tags: [Chats]
+ *   security:
+ *   - AuthToken: []
+ *   parameters:
+ *   - in: path
+ *   - name: chatId
+ *   schema:
+ *    type: string
+ *    required: true
+ *    description: The ID of the chat session to delete.
+ *   responses:
+ *    200:
+ *     description: Chat successfully deleted
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         msg:
+ *          type: string
+ *          example: Chat deleted
+ *    404:
+ *     description: Chat not found
+ *    500:
+ *     description: Server Error
  */
 router.delete('/:chatId', auth, async (req, res) => {
     try {
