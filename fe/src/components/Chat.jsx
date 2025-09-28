@@ -161,7 +161,7 @@ const Chat = () => {
                         {/* NEW FILE INPUT */}
                         <div className="input-group-prepend">
                             <label className="btn btn-outline-secondary disabled rounded-5" title="Upload File">
-                                {file ? file.name : 'Attach'}
+                                {file ? file.name : '+ Attach'}
                                 <input
                                     type="file"
                                     hidden
@@ -192,7 +192,29 @@ const Chat = () => {
                             disabled={isSending || !activeChatId}
                         />
                         <button type="submit" className="btn btn-success rounded-5" disabled={isSending || !activeChatId}>
-                            {isSending ? 'Sending...' : 'Send'}
+                            {isSending ? (
+                                // State 1: When sending
+                                <>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                         className="bi bi-arrow-clockwise rotate-clockwise me-2" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd"
+                                              d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                                        <path
+                                            d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                                    </svg>
+                                    <span>Sending..</span>
+                                </>
+                            ) : (
+                                // State 2: When ready to send (SVG icon + the word "Send")
+                                <>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                         className="bi bi-send me-2" viewBox="0 0 16 16">
+                                        <path
+                                            d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                                    </svg>
+                                    <span>Send</span>
+                                </>
+                            )}
                         </button>
                     </form>
                 </div>

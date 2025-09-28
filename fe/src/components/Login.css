@@ -1,8 +1,3 @@
-.ai-response-text {
-    /* Honors newline characters (\n) and wraps text when necessary */
-    white-space: pre-wrap;
-}
-
 /* 1. Define the rotation steps */
 @keyframes spin {
     from {
