@@ -106,10 +106,21 @@ const callGeminiApi = async (history, contentParts) => {
 
     //console.log('Final Content:', JSON.stringify(contents, null, 2));
 
+
+    const config = {
+        // Grounding enabled by adding the tools property with googleSearch tool
+        tools: [{
+            googleSearch: {}
+        }],
+        // System instruction to be used by the model as a persona for the conversation.
+        systemInstruction: "You are a helpful, concise, and friendly assistant. Format lists using markdown.",
+    };
+
     // 4. Send the request
     const response = await ai.models.generateContent({
         model: modelName,
-        contents: contents
+        contents: contents,
+        config,
     });
 
     return response.text;
@@ -130,10 +141,41 @@ const generateTitle = async (prompt) => {
     return result.text.trim().replace(/^['"]|['"]$/g, '');
 };
 
+// --- Helper function to prepare Mongoose history for Gemini ---
+// History formatting for Gemini API
+const formatHistoryForGemini = (messages) => {
+    return messages.map(msg => {
+        const cleanMsg = msg.toObject ? msg.toObject() : msg;
+
+        // 1. FILTER out any parts that are NOT simple text (like file parts)
+        const textParts = cleanMsg.parts
+            .filter(part => part.text && part.text.length > 0)
+            .map(part => ({ text: part.text }));
+
+        // 2. Ensure the historical message has at least one part
+        if (textParts.length === 0) {
+            // If a historical message was ONLY a file, we skip it or replace it
+            // For now, let's substitute it with a placeholder if the role is 'user'
+            if (cleanMsg.role === 'user') {
+                return { role: 'user', parts: [{ text: '[User sent a file]' }] };
+            }
+            // Model messages should always have text, but if not, skip them
+            return null;
+        }
+
+        // 3. Return the clean message object
+        return {
+            role: cleanMsg.role,
+            parts: textParts
+        };
+    }).filter(msg => msg !== null); // Remove any messages that were filtered out
+};
+
 
 module.exports = {
     uploadFileToGemini,
     deleteFileFromGemini,
     callGeminiApi,
-    generateTitle
+    generateTitle,
+    formatHistoryForGemini,
 };

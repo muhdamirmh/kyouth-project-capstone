@@ -8,7 +8,8 @@ const { // <-- NEW: Import AI utilities
     uploadFileToGemini,
     deleteFileFromGemini,
     callGeminiApi,
-    generateTitle
+    generateTitle,
+    formatHistoryForGemini
 } = require('../utils/ai');
 
 // Configure multer to store file buffers in memory
@@ -21,35 +22,6 @@ const upload = multer({ storage: multer.memoryStorage() });
  *  name: Chats
  *  description: AI Chat Session and Message Management
  */
-
-// --- Helper function to prepare Mongoose history for Gemini ---
-const formatHistoryForGemini = (messages) => {
-    return messages.map(msg => {
-        const cleanMsg = msg.toObject ? msg.toObject() : msg;
-
-        // 1. FILTER out any parts that are NOT simple text (like file parts)
-        const textParts = cleanMsg.parts
-            .filter(part => part.text && part.text.length > 0)
-            .map(part => ({ text: part.text }));
-
-        // 2. Ensure the historical message has at least one part
-        if (textParts.length === 0) {
-            // If a historical message was ONLY a file, we skip it or replace it
-            // For now, let's substitute it with a placeholder if the role is 'user'
-            if (cleanMsg.role === 'user') {
-                return { role: 'user', parts: [{ text: '[User sent a file]' }] };
-            }
-            // Model messages should always have text, but if not, skip them
-            return null;
-        }
-
-        // 3. Return the clean message object
-        return {
-            role: cleanMsg.role,
-            parts: textParts
-        };
-    }).filter(msg => msg !== null); // Remove any messages that were filtered out
-};
 
 /**
  * @route   POST /api/v1/chats/new
@@ -251,7 +223,7 @@ router.post('/:chatId/title', auth, async (req, res) => {
 
         if (newTitle) { // Manual Rename
             chat.title = newTitle;
-        } else { // Auto-Rename (AI Logic)
+        } else { // Auto-Rename (AI Logic) (Auto-Titling)
             if (chat.messages.length < 2) {
                 return res.status(400).json({ msg: 'Need conversation context for auto-rename.' });
             }
